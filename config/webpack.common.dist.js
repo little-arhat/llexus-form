@@ -7,8 +7,13 @@ module.exports = {
         extensions: ['', '.js', '.jsx'],
     },
     externals: {
-        react: 'react',
-        'react/addons': 'react/addons'
+        "react": {
+            root: "React",
+            commonjs2: "react",
+            commonjs: "react",
+            amd: "react"
+        },
+        'react/addons': 'React'
     },
     module: {
         loaders: [{
