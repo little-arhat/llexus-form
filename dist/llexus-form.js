@@ -4,9 +4,9 @@
 	else if(typeof define === 'function' && define.amd)
 		define(["react"], factory);
 	else if(typeof exports === 'object')
-		exports["PlexusForm"] = factory(require("react"));
+		exports["LlexusForm"] = factory(require("react"));
 	else
-		root["PlexusForm"] = factory(root["React"]);
+		root["LlexusForm"] = factory(root["React"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE_2__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -92,92 +92,96 @@ return /******/ (function(modules) { // webpackBootstrap
 	var React = __webpack_require__(2);
 	var $ = React.DOM;
 
-    var ou = __webpack_require__(3);
-    var resolve = __webpack_require__(12);
+	var ou = __webpack_require__(3);
 
 	var fields = __webpack_require__(4);
 	var normalise = __webpack_require__(17);
+	var resolve = __webpack_require__(9);
 
 
 	module.exports = React.createClass({
 	  displayName: 'Form',
 
-            propsToAdditionalPropsInPlace: function(schema, result, original, globalContext) {
-                if (typeof original != "object" || Array.isArray(original))
-                    return;
-                var schemaProperties = schema.properties || {};
-                var ctx = globalContext || schema;
-                var key;
-                var additionalSchema;
-                if (schema.additionalProperties) {
-                    result["_additionalProperties"] = [];
-                    additionalSchema = resolve(schema.additionalProperties, ctx);
-                }
-                for (key in original) {
-                    if (key in schemaProperties) {
-                        // Schema defined prop, recursively check for insides
-                        this.propsToAdditionalPropsInPlace(schemaProperties[key],
-                                                           result[key],
-                                                           original[key],
-                                                           ctx);
-                    } else {
-                        // Property isn't found in schema.properties...
-                        if (schema.additionalProperties) {
-                            // And schema supports additional properties
-                            // this is additional prop and has to be moved
-                            var new_prop = JSON.parse(JSON.stringify(original[key]));
-                            this.propsToAdditionalPropsInPlace(additionalSchema,
-                                                               new_prop,
-                                                               original[key],
-                                                               ctx);
-                            result["_additionalProperties"].push({
-                                key: key,
-                                value: new_prop
-                            });
-                            // delete additionalProp from result:
-                            delete result[key];
-                        } else {
-                            // if it's property without schema, leave it validation, don't go further
-                        }
-                    }
-                }
-            },
-	    getInitialState: function() {
-                if (this.props.values) {
-                    var transformed = JSON.parse(JSON.stringify(this.props.values));
-	            this.propsToAdditionalPropsInPlace(this.props.schema,
-                                                       transformed,
-                                                       this.props.values);
-                } else {
-                    var transformed = this.props.values;
-                }
-	        var errors = this.validate(this.props.schema, this.props.values, context(this.props));
-                console.log(errors);
-	        return { values: transformed,
-	                 output: transformed,
-	                 errors: errors };
+	  propsToAdditionalPropsInPlace: function(schema, result, original, globalContext) {
+	    if (typeof original != "object" || Array.isArray(original))
+	      return;
+	    var schemaProperties = schema.properties || {};
+	    var ctx = globalContext || schema;
+	    var key;
+	    var additionalSchema;
+	    if (schema.additionalProperties) {
+	      result["_additionalProperties"] = [];
+	      additionalSchema = resolve(schema.additionalProperties, ctx);
+	    }
+	    for (key in original) {
+	      if (key in schemaProperties) {
+	        // Schema defined prop, recursively check for insides
+	        this.propsToAdditionalPropsInPlace(schemaProperties[key],
+	                                           result[key],
+	                                           original[key],
+	                                           ctx);
+	      } else {
+	        // Property isn't found in schema.properties...
+	        if (schema.additionalProperties) {
+	          // And schema supports additional properties
+	          // this is additional prop and has to be moved
+	          var new_prop = JSON.parse(JSON.stringify(original[key]));
+	          this.propsToAdditionalPropsInPlace(additionalSchema,
+	                                             new_prop,
+	                                             original[key],
+	                                             ctx);
+	          result["_additionalProperties"].push({
+	            key: key,
+	            value: new_prop
+	          });
+	          // delete additionalProp from top-level of object:
+	          delete result[key];
+	        } else {
+	          // if it's property without schema, leave it for validation, don't go further
+	        }
+	      }
+	    }
 	  },
-	    componentWillReceiveProps: function(props) {
-	        var values = props.values || this.state.values;
-	        var output = props.values || this.state.output;
-	        this.setState({
-	            values: values,
-	            output: output,
-	            errors: this.validate(props.schema, output, context(props))
-	        });
+	  getInitialState: function() {
+	    if (this.props.values) {
+	      var transformed = JSON.parse(JSON.stringify(this.props.values));
+	      this.propsToAdditionalPropsInPlace(this.props.schema,
+	                                         transformed,
+	                                         this.props.values);
+	    } else {
+	      var transformed = this.props.values;
+	    }
+	    // Validate converts _additionalProperties stuff to correct form, so send
+	    // original properties to it
+	    var errors = this.validate(this.props.schema,
+	                               this.props.values,
+	                               context(this.props));
+	    console.log(errors);
+	    return { values: transformed,
+	             output: transformed,
+	             errors: errors };
+	  },
+	  componentWillReceiveProps: function(props) {
+	    var values = props.values || this.state.values;
+	    var output = props.values || this.state.output;
+	    this.setState({
+	      values: values,
+	      output: output,
+	      errors: this.validate(props.schema, output, context(props))
+	    });
 	  },
 	  setValue: function(path, raw, parsed) {
 	    var schema = this.props.schema;
-	      var ctx    = context(this.props);
-	      var values = normalise(ou.setIn(this.state.values, path, raw),
+	    var ctx    = context(this.props);
+	    var values = normalise(ou.setIn(this.state.values, path, raw),
 	                           schema, ctx);
-	      var output = normalise(ou.setIn(this.state.output, path, parsed),
-	                             schema, ctx);
-	      var errors = this.validate(schema, output, ctx);
+	    var output = normalise(ou.setIn(this.state.output, path, parsed),
+	                           schema, ctx);
+	    var errors = this.validate(schema, output, ctx);
 
-	      if (this.props.submitOnChange) {
-	          this.props.onSubmit(output, null, errors);
-	      }
+	    if (this.props.submitOnChange) {
+	      this.props.onSubmit(output, null, errors);
+	    }
 	    else {
 	      this.setState({
 	        values: values,
@@ -194,33 +198,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  validate: function(schema, values, context) {
 	    return hashedErrors(this.props.validate(schema,
-                                                    this.additionalPropsToProps(values),
-                                                    context));
+	                                            this.additionalPropsToProps(values),
+	                                            context));
 	  },
 	  preventSubmit: function(event) {
 	    event.preventDefault();
 	  },
-          additionalPropsToProps: function(item) {
-                if (typeof item == "object" && !Array.isArray(item)) {
-                    var res = {};
-                    var k;
-                    for (k in item) {
-                        if (k == "_additionalProperties") {
-                            item[k].forEach(function(prop) {
-                                var key = prop["key"];
-                                var value = prop["value"];
-                                res[key] = this.additionalPropsToProps(value);
-                            }.bind(this));
-                        } else {
-                            res[k] = this.additionalPropsToProps(item[k]);
-                        }
-                    }
-                    return res;
-                } else {
-                    return item;
-                }
-            },
-          handleSubmit: function(event) {
+	  additionalPropsToProps: function(item) {
+	    if (typeof item == "object" && !Array.isArray(item)) {
+	      var res = {};
+	      var k;
+	      for (k in item) {
+	        if (k == "_additionalProperties") {
+	          item[k].forEach(function(prop) {
+	            var key = prop["key"];
+	            var value = prop["value"];
+	            res[key] = this.additionalPropsToProps(value);
+	          }.bind(this));
+	        } else {
+	          res[k] = this.additionalPropsToProps(item[k]);
+	        }
+	      }
+	      return res;
+	    } else {
+	      return item;
+	    }
+	  },
+	  handleSubmit: function(event) {
 	    this.props.onSubmit(this.additionalPropsToProps(this.state.output),
 	                        event.target.value,
 	                        this.state.errors);
@@ -384,7 +388,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (root == null || root === '')
 	    result = null;
 	  else if (root.constructor === Array || root.constructor === Object) {
-	    isArray = Array.isArray(root);
+	    isArray = Array.isArray(root); 
 	    result = isArray ? [] : {};
 	    for (key in root) {
 	      val = prune(root[key]);
@@ -462,10 +466,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	'use strict';
 
 	module.exports = {
-	    CheckBox: __webpack_require__(8),
-	    FileField: __webpack_require__(9),
-	    InputField: __webpack_require__(14),
-	    UserDefinedField: __webpack_require__(5),
+	    CheckBox: __webpack_require__(5),
+	    FileField: __webpack_require__(6),
+	    InputField: __webpack_require__(11),
+	    UserDefinedField: __webpack_require__(14),
 	    Selection: __webpack_require__(15),
 	    make: __webpack_require__(16),
 	};
@@ -473,103 +477,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var React = __webpack_require__(2);
-
-	var normalizer = __webpack_require__(6);
-	var parser = __webpack_require__(7);
-
-
-	var UserDefinedField = React.createClass({
-	  displayName: 'UserDefinedField',
-
-	  normalize: function(text) {
-	    var n = normalizer[this.props.type];
-	    return n ? n(text) : text;
-	  },
-	  parse: function(text) {
-	    var p = parser[this.props.type];
-	    return p ? p(text) : text;
-	  },
-	  handleChange: function(value) {
-	    var text = this.normalize(value);
-	    this.props.update(this.props.path, text, this.parse(text));
-	  },
-	  handleKeyPress: function(event) {
-	    if (event.keyCode === 13) {
-	      event.preventDefault();
-	    }
-	  },
-	  render: function() {
-	    return React.createElement(this.props.component, {
-	      schema    : this.props.schema,
-	      value     : this.props.value || '',
-	      onKeyPress: this.handleKeyPress,
-	      onChange  : this.handleChange
-	    });
-	  }
-	});
-
-	module.exports = UserDefinedField;
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-
-	exports.string = function(text) {
-	  return text
-	    .replace(/\s+/g, ' ')
-	    .replace(/^ /, '')
-	    .replace(/\u00ad/g, '');
-	};
-
-	exports.integer = function(text) {
-	  return text
-	    .replace(/[^-\d]/g, '')
-	    .replace(/(.)-/g, '$1');
-	};
-
-	exports.number = function(text) {
-	  return text
-	    .replace(/[^-\.e\d]/ig, '')
-	    .replace(/(e[^e]*)e/ig, '$1')
-	    .replace(/([e.][^.]*)\./ig, '$1')
-	    .replace(/([^e])-/ig, '$1')
-	    .replace(/(e-?\d\d\d)\d/ig, '$1');
-	};
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var normalizer = __webpack_require__(6);
-
-
-	exports.string = function(text) {
-	  return normalizer.string(text);
-	};
-
-	exports.integer = function(text) {
-	  return text ? parseInt(normalizer.integer(text)) : null;
-	};
-
-	exports.number = function(text) {
-	  return text ? parseFloat(normalizer.number(text)) : null;
-	};
-
-
-/***/ },
-/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -599,7 +506,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -609,8 +516,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var ou = __webpack_require__(3);
 
-	var types = __webpack_require__(10);
-	var wrapped = __webpack_require__(13);
+	var types = __webpack_require__(7);
+	var wrapped = __webpack_require__(10);
 
 
 	var FileField = React.createClass({
@@ -661,14 +568,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 10 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var ou = __webpack_require__(3);
 
-	var alternative = __webpack_require__(11);
+	var alternative = __webpack_require__(8);
 
 
 	var types = {
@@ -677,58 +584,58 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    return types.object(fields, ou.merge(props, { schema: s }));
 	  },
-	  array: function(fields, props) {
-              var tuple_typing = Array.isArray(props.schema.items);
-              if (tuple_typing) {
-                  return props.schema.items.map(function(item, index) {
-                      return fields.make(fields, ou.merge(props, {
-                          schema: item,
-                          path  : props.path.concat(index)
-                      }));
-                  });
-              } else {
-                  var n = (props.getValue(props.path) || []).length + 1;
-                  var list = [];
-                  for (var i = 0; i < n; ++i) {
-                      list.push(fields.make(fields, ou.merge(props, {
-                          schema: props.schema.items,
-                          path  : props.path.concat(i),
-                      })));
-                  }
-                  return list;
-              }
-	  },
-	    object: function(fields, props) {
-	        var keys = fullOrdering(props.schema['x-ordering'], props.schema.properties);
-                // set properties
-                var list = keys.map(function(key) {
-	            return fields.make(fields, ou.merge(props, {
-	                schema: props.schema.properties[key],
-	                path  : props.path.concat(key)
-	            }));
+	    array: function(fields, props) {
+	      var tuple_typing = Array.isArray(props.schema.items);
+	      if (tuple_typing) {
+	        return props.schema.items.map(function(item, index) {
+	          return fields.make(fields, ou.merge(props, {
+	            schema: item,
+	            path  : props.path.concat(index)
+	          }));
 	        });
-              if (props.schema.additionalProperties) {
-                var n = Object.keys(props.getValue(props.path) || {}).length + 1;
-                var list = [];
-                for (var i = 0; i < n; ++i) {
-                        var additionalProperty = {
-                            "type": "object",
-                            "title": "item:",
-                            "properties": {
-                                "key": {
-                                    "type": "string",
-                                    "title": "key",
-                                },
-                                "value": props.schema.additionalProperties
-                            }
-                        };
-	                list.push(fields.make(fields, ou.merge(props, {
-	                    schema: additionalProperty,
-	                    path  : props.path.concat("_additionalProperties").concat(i)
-	                })));
-                    }
-                }
+	      } else {
+	        var n = (props.getValue(props.path) || []).length + 1;
+	        var list = [];
+	        for (var i = 0; i < n; ++i) {
+	          list.push(fields.make(fields, ou.merge(props, {
+	            schema: props.schema.items,
+	            path  : props.path.concat(i),
+	          })));
+	        }
 	        return list;
+	      }
+	  },
+	  object: function(fields, props) {
+	    var keys = fullOrdering(props.schema['x-ordering'], props.schema.properties);
+	    // set general properties
+	    var list = keys.map(function(key) {
+	      return fields.make(fields, ou.merge(props, {
+	        schema: props.schema.properties[key],
+	        path  : props.path.concat(key)
+	      }));
+	    });
+	    if (props.schema.additionalProperties) {
+	      var n = Object.keys(props.getValue(props.path) || {}).length + 1;
+	      var list = [];
+	      for (var i = 0; i < n; ++i) {
+	        var additionalProperty = {
+	          "type": "object",
+	          "title": "item:",
+	          "properties": {
+	            "key": {
+	              "type": "string",
+	              "title": "key",
+	            },
+	            "value": props.schema.additionalProperties
+	          }
+	        };
+	        list.push(fields.make(fields, ou.merge(props, {
+	          schema: additionalProperty,
+	          path  : props.path.concat("_additionalProperties").concat(i)
+	        })));
+	      }
+	    }
+	    return list;
 	  },
 	};
 
@@ -758,13 +665,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 11 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var ou = __webpack_require__(3);
-	var resolve = __webpack_require__(12);
+	var resolve = __webpack_require__(9);
 
 	exports.schema = function(value, schema, context) {
 	  var selector, options, selected;
@@ -777,7 +684,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var dereferenced = schema.oneOf.map(function(alt) {
 	    return resolve(alt, context);
 	  });
-
+	    
 	  options = dereferenced.map(function(alt) {
 	    return ou.getIn(alt, [ 'properties', selector, 'enum', 0 ]) || "";
 	  });
@@ -793,7 +700,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -801,15 +708,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	var ou = __webpack_require__(3);
 
 
-    module.exports = function(schema, context) {
+	module.exports = function(schema, context) {
 	  var reference = schema['$ref'];
 
 	  if (reference) {
 	    if (!reference.match(/^#(\/([a-zA-Z_][a-zA-Z_0-9]*|[0-9]+))*$/)) {
 	      throw new Error('reference '+reference+' has unsupported format');
 	    }
-              return ou.merge(without(schema, '$ref'),
-                           ou.getIn(context, reference.split('/').slice(1)));
+
+	    return ou.merge(
+	      ou.getIn(context, reference.split('/').slice(1)),
+	      without(schema, '$ref'));
 	  }
 	  else {
 	    return schema;
@@ -831,7 +740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -933,7 +842,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -941,8 +850,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var React = __webpack_require__(2);
 	var $ = React.DOM;
 
-	var normalizer = __webpack_require__(6);
-	var parser = __webpack_require__(7);
+	var normalizer = __webpack_require__(12);
+	var parser = __webpack_require__(13);
 
 
 	var InputField = React.createClass({
@@ -978,6 +887,103 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+
+	exports.string = function(text) {
+	  return text
+	    .replace(/\s+/g, ' ')
+	    .replace(/^ /, '')
+	    .replace(/\u00ad/g, '');
+	};
+
+	exports.integer = function(text) {
+	  return text
+	    .replace(/[^-\d]/g, '')
+	    .replace(/(.)-/g, '$1');
+	};
+
+	exports.number = function(text) {
+	  return text
+	    .replace(/[^-\.e\d]/ig, '')
+	    .replace(/(e[^e]*)e/ig, '$1')
+	    .replace(/([e.][^.]*)\./ig, '$1')
+	    .replace(/([^e])-/ig, '$1')
+	    .replace(/(e-?\d\d\d)\d/ig, '$1');
+	};
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var normalizer = __webpack_require__(12);
+
+
+	exports.string = function(text) {
+	  return normalizer.string(text);
+	};
+
+	exports.integer = function(text) {
+	  return text ? parseInt(normalizer.integer(text)) : null;
+	};
+
+	exports.number = function(text) {
+	  return text ? parseFloat(normalizer.number(text)) : null;
+	};
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(2);
+
+	var normalizer = __webpack_require__(12);
+	var parser = __webpack_require__(13);
+
+
+	var UserDefinedField = React.createClass({
+	  displayName: 'UserDefinedField',
+
+	  normalize: function(text) {
+	    var n = normalizer[this.props.type];
+	    return n ? n(text) : text;
+	  },
+	  parse: function(text) {
+	    var p = parser[this.props.type];
+	    return p ? p(text) : text;
+	  },
+	  handleChange: function(value) {
+	    var text = this.normalize(value);
+	    this.props.update(this.props.path, text, this.parse(text));
+	  },
+	  handleKeyPress: function(event) {
+	    if (event.keyCode === 13) {
+	      event.preventDefault();
+	    }
+	  },
+	  render: function() {
+	    return React.createElement(this.props.component, {
+	      schema    : this.props.schema,
+	      value     : this.props.value || '',
+	      onKeyPress: this.handleKeyPress,
+	      onChange  : this.handleChange
+	    });
+	  }
+	});
+
+	module.exports = UserDefinedField;
+
+
+/***/ },
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -986,8 +992,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var React = __webpack_require__(2);
 	var $ = React.DOM;
 
-	var normalizer = __webpack_require__(6);
-	var parser = __webpack_require__(7);
+	var normalizer = __webpack_require__(12);
+	var parser = __webpack_require__(13);
 
 
 	var Selection = React.createClass({
@@ -1037,9 +1043,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var ou = __webpack_require__(3);
 
-	var resolve = __webpack_require__(12);
-	var types = __webpack_require__(10);
-	var wrapped = __webpack_require__(13);
+	var resolve = __webpack_require__(9);
+	var types = __webpack_require__(7);
+	var wrapped = __webpack_require__(10);
 
 
 	module.exports = function(fields, props) {
@@ -1105,8 +1111,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var ou = __webpack_require__(3);
 
-	var alternative = __webpack_require__(11);
-	var resolve = __webpack_require__(12);
+	var alternative = __webpack_require__(8);
+	var resolve = __webpack_require__(9);
 
 
 	module.exports = function(data, schema, context) {
@@ -1132,8 +1138,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                                       context);
 	    }
 	  } else if (effectiveSchema.type === 'array') {
-	      result = [];
-	      for (key = 0; key < (data || []).length; ++key) {
+	    result = [];
+	    for (key = 0; key < (data || []).length; ++key) {
 	      result[key] = withDefaultOptions((data || [])[key],
 	                                       effectiveSchema.items,
 	                                       context);

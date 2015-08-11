@@ -11,9 +11,9 @@ var readme = require('../README.md');
 module.exports = React.createClass({
     render() {
         return <div className='pure-g'>
-            <Fork className='right' project='AppliedMathematicsANU/plexus-form'></Fork>
+            <Fork className='right' project='little-arhat/llexus-form'></Fork>
             <header className='pure-u-1'>
-                <h1>plexus-form</h1>
+                <h1>llexus-form</h1>
 
                 <div className='description'>A dynamic form component for react using JSON-Schema.</div>
             </header>

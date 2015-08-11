@@ -7,8 +7,8 @@ var common = require('./webpack.common.dist');
 module.exports = extend(common, {
     output: {
         path: './dist',
-        filename: 'plexus-form.js',
+        filename: 'llexus-form.js',
         libraryTarget: 'umd',
-        library: 'PlexusForm',
+        library: 'LlexusForm',
     },
 });

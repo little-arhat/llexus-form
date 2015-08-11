@@ -1,14 +1,18 @@
-# plexus-form
+# llexus-form
 
 A dynamic form component for [React](http://facebook.github.io/react/) using a
 specification format based on [JSON-Schema](http://json-schema.org/).
 
-**[Demo](http://appliedmathematicsanu.github.io/plexus-form/)**
+FORKED from https://github.com/AppliedMathematicsANU/plexus-form.
+
+New in this fork: support for `additionalProperties`, "tuple typing".
+
+**[Demo of original version](http://appliedmathematicsanu.github.io/plexus-form/)**
 
 The full code for the demo can be found at
-https://github.com/AppliedMathematicsANU/plexus-form/blob/master/demos/demo.jsx.
+https://github.com/little-arhat/llexus-form/blob/master/demos/demo.jsx.
 
-Plexus-form takes a JavaScript object describing the shape of the data we want
+Llexus-form takes a JavaScript object describing the shape of the data we want
 a user to provide - a *schema* - and automatically creates a form based on
 that schema. It also validates user inputs by calling a pluggable validator
 which uses the same schema.
@@ -17,8 +21,8 @@ which uses the same schema.
 ## Minimal example:
 
     var React    = require('react');
-    var validate = require('plexus-validate');
-    var Form     = require('plexus-form');
+    var validate = require('llexus-validate');
+    var Form     = require('llexus-form');
 
     var schema = {
       title      : "My pretty form",
@@ -47,10 +51,10 @@ which uses the same schema.
                  document.body);
 
 
-## Differences between JSON-Schema and plexus-form schemas:
+## Differences between JSON-Schema and llexus-form schemas:
 
-Plexus-form and
-[plexus-validate](https://github.com/AppliedMathematicsANU/plexus-validate)
+Llexus-form and
+[llexus-validate](https://github.com/little-arhat/llexus-validate)
 take a plain JavaScript data object as input rather than a JSON-formatted
 string.
 
@@ -67,16 +71,16 @@ The following JSON-Schema properties are supported:
   - `$ref`
 
 Additional properties relevant to data validation are implemented by
-plexus-validate.
+llexus-validate.
 
 JSON-Schema references can only point to elements within the schema object
 itself. URI references are not supported.
 
-Plexus-form extends the JSON-Schema specification with two new properties
+Llexus-form extends the JSON-Schema specification with two new properties
 `x-hints` and `x-ordering`. The latter, `x-ordering`, specifies a default
 order for the elements under the current object. The former, `x-hints`, can be
 used to annotate a schema with additional hints on how the data is to be
-handled or displayed. The relevant pieces of information for plexus-form are
+handled or displayed. The relevant pieces of information for llexus-form are
 found under `schema["x-hints"].form`. We'll explore these extension in more
 detail in the following sections.
 
@@ -96,7 +100,7 @@ detail in the following sections.
 
 ## Custom CSS classes example:
 
-Plexus-form assigns the following CSS classes automatically:
+Llexus-form assigns the following CSS classes automatically:
 
 - `form-section`
 - `form-subsection`

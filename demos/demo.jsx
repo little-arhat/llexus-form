@@ -2,7 +2,7 @@
 
 var React = require('react');
 
-var validate = require('plexus-validate');
+var validate = require('llexus-validate');
 var Form     = require('..');
 
 
