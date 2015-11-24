@@ -1,6 +1,6 @@
 {
   "name": "llexus-form",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "A dynamic form component for react using JSON-Schema.",
   "scripts": {
     "start": "node server.js",
